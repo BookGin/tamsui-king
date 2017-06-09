@@ -1,0 +1,2 @@
+class Bomb < ApplicationRecord
+end
