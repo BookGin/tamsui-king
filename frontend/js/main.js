@@ -1,7 +1,9 @@
-// Demo: http://jsfiddle.net/4mtyu/2655/
+var map;
+var player;
+var starting_position = {"lat":25.019422934847636, "lng":121.5412656654205};
 
 // Reference: https://stackoverflow.com/a/32784450
-function point2LatLng(point, map) {
+function point2LatLng(point) {
   var topRight = map.getProjection().fromLatLngToPoint(map.getBounds().getNorthEast());
   var bottomLeft = map.getProjection().fromLatLngToPoint(map.getBounds().getSouthWest());
   var scale = Math.pow(2, map.getZoom());
@@ -11,10 +13,27 @@ function point2LatLng(point, map) {
 
 document.documentElement.addEventListener('click', function(mouse) {
   var client_point = {x: mouse.clientX, y:mouse.clientY};
-  // var map_lat_lng = point2LatLng(client_point, google_map_object);
-  log("Click " + JSON.stringify(client_point));
+  //debug("Click " + JSON.stringify(client_point));
+	var new_position = point2LatLng(client_point);
+	player.setPosition(new_position);
+	map.panTo(new_position);
+  debug("Click on" + JSON.stringify(new_position));
 });
 
-function log(msg){
-  document.getElementById('debug-block').innerHTML += msg + '<br />';
+function debug(msg){
+  document.getElementById('debug-block').innerHTML = msg + '<br />';
+}
+
+function initMap() {
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: starting_position,
+    zoom: 18,
+  });
+
+	player = new google.maps.Marker({
+		map: map,
+		position: starting_position,
+		title: 'Hello World!',
+		icon: "http://maps.google.com/mapfiles/ms/micons/woman.png",
+	});
 }
