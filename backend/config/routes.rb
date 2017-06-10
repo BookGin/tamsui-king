@@ -1,7 +1,4 @@
 Rails.application.routes.draw do
-  apipie
-
-  resources :dumb_endpoints, only: [:index, :show]
-  resources :people
-  resources :bombs
+  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
+  mount ActionCable.server => "/cable"
 end
