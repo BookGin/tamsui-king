@@ -1,0 +1,2 @@
+class Dumb < ApplicationRecord
+end

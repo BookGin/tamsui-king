@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class DumbEndpointsControllerTest < ActionDispatch::IntegrationTest
+class BombJobTest < ActiveJob::TestCase
   # test "the truth" do
   #   assert true
   # end
