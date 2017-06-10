@@ -1,0 +1,2 @@
+module DumbRoomHelper
+end
