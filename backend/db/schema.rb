@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170610063712) do
+ActiveRecord::Schema.define(version: 20170610085112) do
 
   create_table "bombs", force: :cascade do |t|
     t.decimal "lat"
@@ -18,6 +18,8 @@ ActiveRecord::Schema.define(version: 20170610063712) do
     t.integer "person_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "lasting"
+    t.decimal "radius"
     t.index ["person_id"], name: "index_bombs_on_person_id"
   end
 

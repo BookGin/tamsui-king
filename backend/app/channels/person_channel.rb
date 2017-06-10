@@ -12,6 +12,6 @@ class PersonChannel < ApplicationCable::Channel
     person.lat = data['lat']
     person.lng = data['lng']
     person.save
-    ActionCable.server.broadcast 'person_channel', message: person.to_json
+    # Find broadcast details in app/models/person.rb and app/jobs/person_job.rb
   end
 end
