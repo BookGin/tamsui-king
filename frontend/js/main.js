@@ -26,6 +26,19 @@ document.documentElement.addEventListener('keydown', function(e) {
       icon: icon,
     });
   }
+  if (e.keyCode === 69){ // press E
+    var rad = 10; // convert to meters if in miles
+    new google.maps.Circle({
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#FF0000',
+            fillOpacity: 0.35,
+            map: map,
+            center: player.getPosition(),
+            radius: rad*2.7,
+          });
+  }
   if (e.keyCode === 65 || e.keyCode === 87 || e.keyCode === 83 || e.keyCode === 68){
     if(e.keyCode === 65){
       var x_move = -0.0005; var y_move = 0;
