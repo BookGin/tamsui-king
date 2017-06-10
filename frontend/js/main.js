@@ -2,6 +2,8 @@ var map;
 var player;
 var directionsService;
 var startingPosition = {"lat":25.019422934847636, "lng":121.5412656654205};
+var bomb = "https://truth.bahamut.com.tw/s01/201006/ecf8480193018fe7494530cb1559d0f3.JPG";
+
 
 // Reference: https://stackoverflow.com/a/32784450
 function point2LatLng(point) {
@@ -11,6 +13,20 @@ function point2LatLng(point) {
   var worldPoint = new google.maps.Point(point.x / scale + bottomLeft.x, point.y / scale + topRight.y);
   return map.getProjection().fromPointToLatLng(worldPoint);
 }
+
+document.documentElement.addEventListener('keydown', function(e) {
+  if (e.keyCode === 81) { // press Q
+    var icon = {
+    url: bomb, // url
+    scaledSize: new google.maps.Size(30, 30), // scaled size
+    };
+    new google.maps.Marker({ 
+      map: map,
+      position: player.getPosition(),
+      icon: icon,
+    });
+  }
+});
 
 // Reference: https://stackoverflow.com/questions/16180104/get-a-polyline-from-google-maps-directions-v3
 document.documentElement.addEventListener('click', function(mouse) {
@@ -40,6 +56,7 @@ document.documentElement.addEventListener('click', function(mouse) {
               map: map,
               position: nextPos,
             });
+            newPosition = nextPos; // player can't leave streets.
           }
         }
       }
