@@ -26,6 +26,51 @@ document.documentElement.addEventListener('keydown', function(e) {
       icon: icon,
     });
   }
+  if (e.keyCode === 65 || e.keyCode === 87 || e.keyCode === 83 || e.keyCode === 68){
+    if(e.keyCode === 65){
+      var x_move = -0.0005; var y_move = 0;
+    }
+    else if(e.keyCode === 87){
+      var x_move = 0; var y_move = 0.0005;
+    }
+    else if(e.keyCode === 83){
+      var x_move = 0; var y_move = -0.0005;
+    }
+    else{
+      var x_move = 0.0005; var y_move = 0;
+    }
+    var position = player.getPosition();
+    var newPosition = {"lat": position.lat() + y_move, "lng": position.lng() + x_move};
+    debug("move to" + JSON.stringify(newPosition));
+
+    directionsService.route({
+      origin: player.getPosition(),
+      destination: newPosition,
+      travelMode: google.maps.TravelMode.WALKING
+    }, function(response, status) {
+      if (status == google.maps.DirectionsStatus.OK) {
+        var polyline = new google.maps.Polyline({
+          path: [],
+          strokeColor: '#FF0000',
+          strokeWeight: 3
+      });
+      var legs = response.routes[0].legs;
+      for (let leg of legs) {
+        for (let step of leg.steps) {
+          for (let nextPos of step.path) {
+            polyline.getPath().push(nextPos);
+            newPosition = nextPos; // player can't leave streets.
+          }
+        }
+      }
+      polyline.setMap(map);
+      player.setPosition(newPosition);
+      map.panTo(newPosition);
+    } else {
+      window.alert('Directions request failed due to ' + status);
+    }
+    });
+  }
 });
 
 // Reference: https://stackoverflow.com/questions/16180104/get-a-polyline-from-google-maps-directions-v3
