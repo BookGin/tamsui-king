@@ -4,6 +4,19 @@ var directionsService;
 var startingPosition = {"lat":25.019422934847636, "lng":121.5412656654205};
 var bomb = "https://truth.bahamut.com.tw/s01/201006/ecf8480193018fe7494530cb1559d0f3.JPG";
 
+// Python websocket server: https://websockets.readthedocs.io/en/stable/intro.html#basic-example
+var websocketHost = "PLEASE_CHANGE_ME e.g. ws://133.221.333.123:3310/";
+var ws = new WebSocket(websocketHost);
+ws.onopen = function() {
+  debug("websocket opened")
+};
+ws.onmessage = function(msg) {
+  alert("websocket recv:" + String(msg));
+};
+ws.onclose = function() {
+  debug("websocket closed");
+};
+
 
 // Reference: https://stackoverflow.com/a/32784450
 function point2LatLng(point) {
@@ -148,3 +161,4 @@ function initMap() {
 		icon: "http://maps.google.com/mapfiles/ms/micons/woman.png",
 	});
 }
+
