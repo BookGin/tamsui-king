@@ -4,8 +4,11 @@ var player;
 var directionsService;
 var startingPosition = {"lat":25.019422934847636, "lng":121.5412656654205};
 var playerSpeed = 100; // meter
-var bomb = "https://truth.bahamut.com.tw/s01/201006/ecf8480193018fe7494530cb1559d0f3.JPG";
+var bomb_url = "https://truth.bahamut.com.tw/s01/201006/ecf8480193018fe7494530cb1559d0f3.JPG";
 
+var bomb_list = {};
+var player_list = {};
+var explosion_list = {};
 
 // Reference: https://stackoverflow.com/a/32784450
 function point2LatLng(point) {
@@ -16,30 +19,47 @@ function point2LatLng(point) {
   return map.getProjection().fromPointToLatLng(worldPoint);
 }
 
-document.documentElement.addEventListener('keydown', function(e) {
-  if (e.keyCode === 81) { // press Q
-    var icon = {
-    url: bomb, // url
+function playerDie(name){
+  player_list[name].setMap(null);
+}
+
+function setBomb(point, name) {
+  var icon = {
+    url: bomb_url, // url
     scaledSize: new google.maps.Size(30, 30), // scaled size
     };
-    new google.maps.Marker({ 
-      map: map,
-      position: player.getPosition(),
-      icon: icon,
-    });
+  bomb_list[name] = new google.maps.Marker({ 
+    map: map,
+    position: point,
+    icon: icon,
+  });
+  return
+}
+
+function explosion(name) {
+  var rad = 10; // convert to meters if in miles
+  var bomb = bomb_list[name];
+  var point = bomb.getPosition();
+  explosion_list[name] = new google.maps.Circle({
+          strokeColor: '#FF0000',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: '#FF0000',
+          fillOpacity: 0.35,
+          map: map,
+          center: point,
+          radius: rad*2.7,
+  });
+  bomb_list[name].setMap(null);
+  return
+}
+
+document.documentElement.addEventListener('keydown', function(e) {
+  if (e.keyCode === 81) { // press Q
+    setBomb(player.getPosition(), 'test');
   }
   if (e.keyCode === 69){ // press E
-    var rad = 10; // convert to meters if in miles
-    new google.maps.Circle({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            fillColor: '#FF0000',
-            fillOpacity: 0.35,
-            map: map,
-            center: player.getPosition(),
-            radius: rad*2.7,
-          });
+    explosion('test');
   }
   if (e.keyCode === 65 || e.keyCode === 87 || e.keyCode === 83 || e.keyCode === 68){
     if(e.keyCode === 65){
@@ -88,6 +108,16 @@ document.documentElement.addEventListener('keydown', function(e) {
   }
 });
 
+function setPlayer(point, name) {
+  player_list[name] = new google.maps.Marker({
+		map: map,
+		position: point,
+		title: name,
+		icon: "http://maps.google.com/mapfiles/ms/micons/woman.png",
+	});
+}
+
+
 function generatePolyline(route) {
   var polyline = new google.maps.Polyline({
     path: [player.getPosition()],
@@ -135,6 +165,7 @@ document.documentElement.addEventListener('click', function(mouse) {
     travelMode: google.maps.TravelMode.WALKING
   }, movePlayer);
 
+  setPlayer(newPosition, 'test');
 });
 
 function debug(msg){
