@@ -19,11 +19,11 @@ function point2LatLng(point) {
   return map.getProjection().fromPointToLatLng(worldPoint);
 }
 
-function playerDie(name){
+function playerDie(name){ // remove player from the map
   player_list[name].setMap(null);
 }
 
-function setBomb(point, name) {
+function setBomb(point, name) { // set bomb on the map
   var icon = {
     url: bomb_url, // url
     scaledSize: new google.maps.Size(30, 30), // scaled size
@@ -36,7 +36,7 @@ function setBomb(point, name) {
   return
 }
 
-function explosion(name) {
+function explosion(name) { // bomb explosion
   var rad = 10; // convert to meters if in miles
   var bomb = bomb_list[name];
   var point = bomb.getPosition();
@@ -56,10 +56,10 @@ function explosion(name) {
 
 document.documentElement.addEventListener('keydown', function(e) {
   if (e.keyCode === 81) { // press Q
-    setBomb(player.getPosition(), 'test');
+    setBomb(player.getPosition(), player.getTitle());
   }
   if (e.keyCode === 69){ // press E
-    explosion('test');
+    explosion(player.getTitle());
   }
   if (e.keyCode === 65 || e.keyCode === 87 || e.keyCode === 83 || e.keyCode === 68){
     if(e.keyCode === 65){
@@ -108,7 +108,7 @@ document.documentElement.addEventListener('keydown', function(e) {
   }
 });
 
-function setPlayer(point, name) {
+function setPlayer(point, name) { // set palyer on the map
   player_list[name] = new google.maps.Marker({
 		map: map,
 		position: point,
@@ -165,7 +165,7 @@ document.documentElement.addEventListener('click', function(mouse) {
     travelMode: google.maps.TravelMode.WALKING
   }, movePlayer);
 
-  setPlayer(newPosition, 'test');
+  //setPlayer(newPosition, 'test');
 });
 
 function debug(msg){
