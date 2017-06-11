@@ -3,6 +3,7 @@ var map;
 var player;
 var directionsService;
 var startingPosition = {"lat":25.019422934847636, "lng":121.5412656654205};
+var playerSpeed = 100; // meter
 var bomb = "https://truth.bahamut.com.tw/s01/201006/ecf8480193018fe7494530cb1559d0f3.JPG";
 
 
@@ -87,10 +88,44 @@ document.documentElement.addEventListener('keydown', function(e) {
   }
 });
 
+function generatePolyline(route) {
+  var polyline = new google.maps.Polyline({
+    path: [player.getPosition()],
+    strokeColor: '#FF0000',
+    strokeWeight: 3
+  });
+  var totalDistance = 0;
+  for (let leg of route.legs) {
+    for (let step of leg.steps) {
+      if (totalDistance + step.distance.value >= playerSpeed) {
+        let ratio = (playerSpeed - totalDistance) / step.distance.value;
+        let interpolatingPosition = google.maps.geometry.spherical.interpolate(step.start_location, step.end_location, ratio)
+        polyline.getPath().push(interpolatingPosition);
+        return polyline;
+      } 
+      polyline.getPath().push(step.end_location);
+      totalDistance += step.distance.value;
+    }
+  }
+  return polyline;
+}
+
+function movePlayer(directionsServiceResponse, status) {
+  if (status != google.maps.DirectionsStatus.OK) {
+    window.alert('Directions request failed due to ' + status);
+    return;
+  }
+  var route = directionsServiceResponse.routes[0];
+  var polyline = generatePolyline(route);
+  polyline.setMap(map);
+  // polyline.getPath() will return a MVCArray
+  var nextPosition = polyline.getPath().getAt(polyline.getPath().length - 1);
+  player.setPosition(nextPosition);
+}
+
 // Reference: https://stackoverflow.com/questions/16180104/get-a-polyline-from-google-maps-directions-v3
 document.documentElement.addEventListener('click', function(mouse) {
   var clientPoint = {x: mouse.clientX, y:mouse.clientY};
-  //debug("Click " + JSON.stringify(clientPoint));
 	var newPosition = point2LatLng(clientPoint);
   debug("Click on" + JSON.stringify(newPosition));
 
@@ -98,39 +133,12 @@ document.documentElement.addEventListener('click', function(mouse) {
     origin: player.getPosition(),
     destination: newPosition,
     travelMode: google.maps.TravelMode.WALKING
-  }, function(response, status) {
-    if (status == google.maps.DirectionsStatus.OK) {
-      var polyline = new google.maps.Polyline({
-        path: [],
-        strokeColor: '#FF0000',
-        strokeWeight: 3
-      });
-
-      var legs = response.routes[0].legs;
-      for (let leg of legs) {
-        for (let step of leg.steps) {
-          debug("distance = " + JSON.stringify(step.distance));
-          polyline.getPath().push(step.end_location);
-          new google.maps.Marker({
-            map: map,
-            position: step.end_location,
-          });
-          newPosition = step.end_location; // player can't leave streets.
-        }
-      }
-      polyline.setMap(map);
-
-      player.setPosition(newPosition);
-      map.panTo(newPosition);
-    } else {
-      window.alert('Directions request failed due to ' + status);
-    }
-  });
+  }, movePlayer);
 
 });
 
 function debug(msg){
-  document.getElementById('debug-block').innerHTML += msg + '<br />';
+  document.getElementById('debug-block').innerHTML += msg + '<br/>';
 }
 
 function initMap() {
