@@ -109,14 +109,13 @@ document.documentElement.addEventListener('click', function(mouse) {
       var legs = response.routes[0].legs;
       for (let leg of legs) {
         for (let step of leg.steps) {
-          for (let nextPos of step.path) {
-            polyline.getPath().push(nextPos);
-            new google.maps.Marker({
-              map: map,
-              position: nextPos,
-            });
-            newPosition = nextPos; // player can't leave streets.
-          }
+          debug("distance = " + JSON.stringify(step.distance));
+          polyline.getPath().push(step.end_location);
+          new google.maps.Marker({
+            map: map,
+            position: step.end_location,
+          });
+          newPosition = step.end_location; // player can't leave streets.
         }
       }
       polyline.setMap(map);
