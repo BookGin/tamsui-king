@@ -8,10 +8,12 @@ class PersonChannel < ApplicationCable::Channel
   end
 
   def send_position(data)
-    person = Person.find_by(:id => data["person_id"])
-    person.lat = data['lat']
-    person.lng = data['lng']
+    # person_id Based on cookie
+    person = Person.find_by(:id => cookies.signed[:user_id]
+    person.lat = data['position']['lat']
+    person.lng = data['position']['lng']
     person.save
     # Find broadcast details in app/models/person.rb and app/jobs/person_job.rb
   end
+  
 end
