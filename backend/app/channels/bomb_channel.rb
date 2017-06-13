@@ -9,7 +9,11 @@ class BombChannel < ApplicationCable::Channel
 
   def set_bomb(data)
     person = Person.find_by(:id => data["person_id"])
-    person.bombs.create!(lat: data["lat"], lng: data["lng"], lasting: data["time_to_bomb"], radius: data["radius"])
+    person.bombs.create!(
+      lat: data["position"]["lat"],
+      lng: data["position"]["lng"],
+      lasting: data["lasting"],
+      radius: data["radius"])
     # Broadcast create with background job, see app/jobs/bomb_job.rb
   end
 end
