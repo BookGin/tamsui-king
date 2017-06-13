@@ -2,9 +2,13 @@ class BombJob < ApplicationJob
   queue_as :default
 
   def perform(bomb)
-    ActionCable.server.broadcast "bomb_channel", bomb: bomb.to_json, message: "Placed"
+    ActionCable.server.broadcast "bomb_channel",
+                                 bomb: bomb.to_json(methods: :position, except: [:lat, :lng]),
+                                 action: "planted"
     sleep(bomb.lasting)
-    ActionCable.server.broadcast "bomb_channel", bomb: bomb.to_json, message: "Bombed"
+    ActionCable.server.broadcast "bomb_channel",
+                                 bomb: bomb.to_json(methods: :position, except: [:lat, :lng]),
+                                 action: "explosion"
     check_if_anyone_die(bomb) 
   end
 
