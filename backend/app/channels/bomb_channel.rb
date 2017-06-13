@@ -8,7 +8,7 @@ class BombChannel < ApplicationCable::Channel
   end
 
   def set_bomb(data)
-    person = Person.find_by(:id => cookies.signed[:user_id])
+    person = current_user
     person.bombs.create!(
       lat: data["position"]["lat"],
       lng: data["position"]["lng"],

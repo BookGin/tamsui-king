@@ -9,7 +9,7 @@ class PersonChannel < ApplicationCable::Channel
 
   def send_position(data)
     # person_id Based on cookie
-    person = Person.find_by(:id => cookies.signed[:user_id]
+    person = current_user
     person.lat = data['position']['lat']
     person.lng = data['position']['lng']
     person.save
