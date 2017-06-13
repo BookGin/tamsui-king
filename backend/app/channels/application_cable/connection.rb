@@ -9,6 +9,7 @@ module ApplicationCable
 
     protected
     def find_verified_user
+      print(cookies.signed[:user_id])
       if verified_user = Person.find_by(id: cookies.signed[:user_id])
         verified_user
       else

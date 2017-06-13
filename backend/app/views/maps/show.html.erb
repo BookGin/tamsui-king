@@ -1,47 +1,13 @@
 <%= link_to "Logout", session_url(@current_user.id), method: :delete %>
 
-<h1>People</h1>
-<table>
-  <thead>
-    <tr>
-      <td>ID</td>
-      <td>Lat</td>
-      <td>Lng</td>      
-    </tr>
-  </thead>
-  <tbody>
-    <% @people.each do |person| %>
-    <tr>
-      <td><%= person.id %></td>
-      <td><%= person.lat %></td>
-      <td><%= person.lng %></td>      
-    </tr>
-    <% end %>
-  </tbody>
-</table>
+<style type="text/css">
+	html, body { height: 100%; margin: 0; padding: 0; }
+	#map { height: 95%; }
+	#debug-block { height: 5%; }
+</style>
 
-<h1>Bombs</h1>
-<table>
-  <thead>
-    <tr>
-      <td>ID</td>
-      <td>Belongs to</td>
-      <td>Lat</td>
-      <td>Lng</td>
-      <td>Lasting</td>
-      <td>Radius</td>
-    </tr>
-  </thead>
-  <tbody>
-    <% @bombs.each do |b| %>
-    <tr>
-      <td><%= b.id %></td>
-      <td><%= b.person_id %></td>
-      <td><%= b.lat %></td>      
-      <td><%= b.lng %></td>
-      <td><%= b.lasting %></td>
-      <td><%= b.radius %></td>      
-    </tr>
-    <% end %>
-  </tbody>
-</table>
+<div id="map"></div>
+<div id="debug-block"></div>
+
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAL2I2y5jDE4x4_Z2TjbXaUuPzxa1WjxEM&libraries=geometry&callback=initMap"></script>
+

@@ -1,5 +1,5 @@
 class Person < ApplicationRecord
-  has_many :bombs
+  has_many :bombs, :dependent => :nullify
   before_destroy { PersonJob.perform_later(self, "died") }
   after_save { PersonJob.perform_later(self, "positioned") }
 
