@@ -1,4 +1,4 @@
-//var ws = new WebsocketClient("ws://1.2.3.4:5678/);
+var ws = new WebsocketClient("ws://1.2.3.4:5678/");
 var map;
 var player;
 var directionsService;
@@ -8,7 +8,6 @@ var bomb_url = "https://truth.bahamut.com.tw/s01/201006/ecf8480193018fe7494530cb
 
 var bomb_list = {};
 var player_list = {};
-var explosion_list = {};
 
 // Reference: https://stackoverflow.com/a/32784450
 function point2LatLng(point) {
@@ -19,47 +18,9 @@ function point2LatLng(point) {
   return map.getProjection().fromPointToLatLng(worldPoint);
 }
 
-function playerDie(name){ // remove player from the map
-  player_list[name].setMap(null);
-}
-
-function setBomb(point, name) { // set bomb on the map
-  var icon = {
-    url: bomb_url, // url
-    scaledSize: new google.maps.Size(30, 30), // scaled size
-    };
-  bomb_list[name] = new google.maps.Marker({ 
-    map: map,
-    position: point,
-    icon: icon,
-  });
-  return
-}
-
-function explosion(name) { // bomb explosion
-  var rad = 10; // convert to meters if in miles
-  var bomb = bomb_list[name];
-  var point = bomb.getPosition();
-  explosion_list[name] = new google.maps.Circle({
-          strokeColor: '#FF0000',
-          strokeOpacity: 0.8,
-          strokeWeight: 2,
-          fillColor: '#FF0000',
-          fillOpacity: 0.35,
-          map: map,
-          center: point,
-          radius: rad*2.7,
-  });
-  bomb_list[name].setMap(null);
-  return
-}
-
 document.documentElement.addEventListener('keydown', function(e) {
   if (e.keyCode === 81) { // press Q
-    setBomb(player.getPosition(), player.getTitle());
-  }
-  if (e.keyCode === 69){ // press E
-    explosion(player.getTitle());
+    ws.plantBomb(player.name, player.getPosition()); 
   }
   if (e.keyCode === 65 || e.keyCode === 87 || e.keyCode === 83 || e.keyCode === 68){
     if(e.keyCode === 65){
@@ -82,39 +43,76 @@ document.documentElement.addEventListener('keydown', function(e) {
       origin: player.getPosition(),
       destination: newPosition,
       travelMode: google.maps.TravelMode.WALKING
-    }, function(response, status) {
-      if (status == google.maps.DirectionsStatus.OK) {
-        var polyline = new google.maps.Polyline({
-          path: [],
-          strokeColor: '#FF0000',
-          strokeWeight: 3
-      });
-      var legs = response.routes[0].legs;
-      for (let leg of legs) {
-        for (let step of leg.steps) {
-          for (let nextPos of step.path) {
-            polyline.getPath().push(nextPos);
-            newPosition = nextPos; // player can't leave streets.
-          }
-        }
-      }
-      polyline.setMap(map);
-      player.setPosition(newPosition);
-      map.panTo(newPosition);
-    } else {
-      window.alert('Directions request failed due to ' + status);
-    }
-    });
+    }, movePlayer);
   }
 });
 
-function setPlayer(point, name) { // set palyer on the map
-  player_list[name] = new google.maps.Marker({
-		map: map,
-		position: point,
-		title: name,
-		icon: "http://maps.google.com/mapfiles/ms/micons/woman.png",
-	});
+ws.updateBombLocations = function(bombs) { // set bomb on the map
+  for (let bomb of bombs) {
+    if (!(bomb.name in bomb_list)) {
+      bomb_list[bomb.name] = new google.maps.Marker({
+        map: map,
+        label: {
+          color: 'Red',
+          fontWeight: 'bold',
+          fontSize: '18',
+          text: bomb.name,
+        },
+        scaledSize: new google.maps.Size(30, 30), // scaled size
+        icon: bomb_url,
+      });
+    }
+    debug(JSON.stringify(bomb.list));
+    debug(bomb.name);
+    bomb_list[bomb.name].setPosition(bomb.position);
+  }
+}
+
+ws.bombExplode = function(name) { // bomb explosion
+  if (!(name in bomb_list))
+    debug(name + " is not in bomb list! " + JSON.stringify(bomb_list));
+  var rad = 10; // convert to meters if in miles
+  var explosionCircle  = new google.maps.Circle({
+          strokeColor: '#FF0000',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: '#FF0000',
+          fillOpacity: 0.35,
+          map: map,
+          center: bomb_list[name].getPosition(),
+          radius: rad * 2.7,
+  });
+
+  // remove this explosion circle after 3000ms
+  setTimeout( () => explosionCircle.setMap(null), 3000);
+  bomb_list[name].setMap(null);
+  delete bomb_list[name];
+}
+
+
+ws.updatePlayerPositions = function(players) {
+  for (let player of players) {
+    if (!(player.name in player_list)) {
+      player_list[player.name] = new google.maps.Marker({
+        map: map,
+        label: {
+          color: 'black',
+          fontWeight: 'bold',
+          fontSize: '18',
+          text: player.name,
+        },
+        icon: "http://maps.google.com/mapfiles/ms/micons/man.png",
+      });
+    }
+    player_list[player.name].setPosition(player.position);
+  }
+}
+
+ws.playerDie = function(name) {
+  if (!(name in player_list))
+    debug(name + " is not in player list! " + JSON.stringify(player_list));
+  player_list[name].setMap(null);
+  delete player_list[name];
 }
 
 
@@ -151,12 +149,15 @@ function movePlayer(directionsServiceResponse, status) {
   // polyline.getPath() will return a MVCArray
   var nextPosition = polyline.getPath().getAt(polyline.getPath().length - 1);
   player.setPosition(nextPosition);
+  ws.playerMove(player.name, nextPosition);
+  // remove the polyline after 1000 ms
+  setTimeout( () => polyline.setMap(null), 1000);
 }
 
 // Reference: https://stackoverflow.com/questions/16180104/get-a-polyline-from-google-maps-directions-v3
 document.documentElement.addEventListener('click', function(mouse) {
   var clientPoint = {x: mouse.clientX, y:mouse.clientY};
-	var newPosition = point2LatLng(clientPoint);
+  var newPosition = point2LatLng(clientPoint);
   debug("Click on" + JSON.stringify(newPosition));
 
   directionsService.route({
@@ -164,8 +165,6 @@ document.documentElement.addEventListener('click', function(mouse) {
     destination: newPosition,
     travelMode: google.maps.TravelMode.WALKING
   }, movePlayer);
-
-  //setPlayer(newPosition, 'test');
 });
 
 function debug(msg){
@@ -180,11 +179,16 @@ function initMap() {
 
   directionsService = new google.maps.DirectionsService;
 
-	player = new google.maps.Marker({
-		map: map,
-		position: startingPosition,
-		title: 'Hello World!',
-		icon: "http://maps.google.com/mapfiles/ms/micons/woman.png",
-	});
+  player = new google.maps.Marker({
+    map: map,
+    position: startingPosition,
+    label: {
+      color: 'black',
+      fontWeight: 'bold',
+      fontSize: '18',
+      text: 'Player',
+    },
+    icon: "http://maps.google.com/mapfiles/ms/micons/woman.png",
+  });
 }
 
