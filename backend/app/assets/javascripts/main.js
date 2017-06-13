@@ -48,7 +48,7 @@ document.documentElement.addEventListener('keydown', function(e) {
 });
 
 updateBombPositions = function(data) { // set bomb on the map
-  bomb = data.bomb;
+  bomb = JSON.parse(data.bomb);
   bomb_list[bomb.id] = new google.maps.Marker({
     map: map,
     label: {
@@ -63,12 +63,13 @@ updateBombPositions = function(data) { // set bomb on the map
   console.log(bomb)  
   // debug(JSON.stringify(bomb_list));
   debug(bomb.id);
-  bomb_list[bomb.id].setPosition(bomb.position);
+  console.log(bomb.position);
+  bomb_list[bomb.id].setPosition(eachToFloat(bomb.position));
   
 }
 
 bombExplode = function(data) { // bomb explosion
-  bomb = data.bomb
+  bomb = JSON.parse(data.bomb)
   if (!(bomb.id in bomb_list))
     debug(bomb.id + " is not in bomb list! " + JSON.stringify(bomb_list));
   var rad = bomb.radius; // convert to meters if in miles
@@ -90,8 +91,7 @@ bombExplode = function(data) { // bomb explosion
 }
 
 updatePlayerPositions = function(data) {
-  person = data.person
-  console.log(person)
+  person = JSON.parse(data.person)
   player_list[person.id] = new google.maps.Marker({
     map: map,
     label: {
@@ -102,12 +102,11 @@ updatePlayerPositions = function(data) {
     },
     icon: "http://maps.google.com/mapfiles/ms/micons/man.png",
   });
-    
-  player_list[person.id].setPosition(person.position);
+  player_list[person.id].setPosition(eachToFloat(person.position));
 }
 
 die = function(data) {
-  person = data.person
+  person = JSON.parse(data.person)
   console.log("person" + person.id + "die")
   if (!(person.id in player_list))
     debug(person.id + " is not in player list! " + JSON.stringify(player_list));
@@ -192,3 +191,8 @@ function initMap() {
   });
 }
 
+eachToFloat = function(pos) {
+  floatLat = parseFloat(pos.lat);
+  floatLng = parseFloat(pos.lng);
+  return {lat: floatLat, lng: floatLng};
+}
