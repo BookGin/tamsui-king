@@ -1,4 +1,4 @@
-//var ws = new WebsocketClient("ws://1.2.3.4:5678/);
+var ws = new WebsocketClient("ws://localhost:18763/");
 var map;
 var player;
 var directionsService;
