@@ -22,7 +22,7 @@ WebsocketClient = function(websocketHostname) {
     },
     plant: function(latLngPosition, radius, lasting) {
       this.perform("set_bomb", { position: latLngPosition, radius: radius, lasting: lasting });
-    };
+    }
   });
 
   this.person = this.cable.subscriptions.create({channel: "PersonChannel", uuid: this.randomInt()}, {
@@ -39,7 +39,7 @@ WebsocketClient = function(websocketHostname) {
     },
     move: function(latLngPosition) {
       this.perform("send_position", { position: latLngPosition });
-    };  
+    }  
   
   });
   
