@@ -9,7 +9,8 @@ class BombJob < ApplicationJob
     ActionCable.server.broadcast "bomb_channel",
                                  bomb: bomb.to_json(methods: :position, except: [:lat, :lng]),
                                  action: "explosion"
-    check_if_anyone_die(bomb) 
+    check_if_anyone_die(bomb)
+    bomb.destroy
   end
 
   private
