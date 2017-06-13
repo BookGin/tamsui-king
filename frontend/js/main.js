@@ -1,4 +1,4 @@
-var ws = new WebsocketClient("ws://1.2.3.4:5678/");
+var ws = new WebsocketClient("ws://localhost:28080/cable");
 var map;
 var player;
 var directionsService;
@@ -20,7 +20,7 @@ function point2LatLng(point) {
 
 document.documentElement.addEventListener('keydown', function(e) {
   if (e.keyCode === 81) { // press Q
-    ws.plantBomb(player.name, player.getPosition()); 
+    ws.bomb.plant(player.getPosition(), 10, 5); 
   }
   if (e.keyCode === 65 || e.keyCode === 87 || e.keyCode === 83 || e.keyCode === 68){
     if(e.keyCode === 65){
@@ -47,31 +47,31 @@ document.documentElement.addEventListener('keydown', function(e) {
   }
 });
 
-ws.updateBombLocations = function(bombs) { // set bomb on the map
-  for (let bomb of bombs) {
-    if (!(bomb.name in bomb_list)) {
-      bomb_list[bomb.name] = new google.maps.Marker({
-        map: map,
-        label: {
-          color: 'Red',
-          fontWeight: 'bold',
-          fontSize: '18',
-          text: bomb.name,
-        },
-        scaledSize: new google.maps.Size(30, 30), // scaled size
-        icon: bomb_url,
-      });
-    }
-    debug(JSON.stringify(bomb.list));
-    debug(bomb.name);
-    bomb_list[bomb.name].setPosition(bomb.position);
-  }
+ws.updateBombLocations = function(data) { // set bomb on the map
+  bomb = data.bomb
+  bomb_list[bomb.id] = new google.maps.Marker({
+    map: map,
+    label: {
+      color: 'Red',
+      fontWeight: 'bold',
+      fontSize: '18',
+      text: bomb.person_id,
+    },
+    scaledSize: new google.maps.Size(30, 30), // scaled size
+    icon: bomb_url,
+  });
+    
+  debug(JSON.stringify(bomb_list));
+  debug(bomb.id);
+  bomb_list[bomb.id].setPosition(bomb.position);
+  
 }
 
-ws.bombExplode = function(name) { // bomb explosion
-  if (!(name in bomb_list))
-    debug(name + " is not in bomb list! " + JSON.stringify(bomb_list));
-  var rad = 10; // convert to meters if in miles
+ws.bombExplode = function(data) { // bomb explosion
+  bomb = data.bomb
+  if (!(bomb.id in bomb_list))
+    debug(bomb.id + " is not in bomb list! " + JSON.stringify(bomb_list));
+  var rad = bomb.radius; // convert to meters if in miles
   var explosionCircle  = new google.maps.Circle({
           strokeColor: '#FF0000',
           strokeOpacity: 0.8,
@@ -79,40 +79,39 @@ ws.bombExplode = function(name) { // bomb explosion
           fillColor: '#FF0000',
           fillOpacity: 0.35,
           map: map,
-          center: bomb_list[name].getPosition(),
+          center: bomb_list[bomb.id].getPosition(),
           radius: rad * 2.7,
   });
 
   // remove this explosion circle after 3000ms
   setTimeout( () => explosionCircle.setMap(null), 3000);
-  bomb_list[name].setMap(null);
-  delete bomb_list[name];
+  bomb_list[bomb.id].setMap(null);
+  delete bomb_list[bomb.id];
 }
 
 
-ws.updatePlayerPositions = function(players) {
-  for (let player of players) {
-    if (!(player.name in player_list)) {
-      player_list[player.name] = new google.maps.Marker({
-        map: map,
-        label: {
-          color: 'black',
-          fontWeight: 'bold',
-          fontSize: '18',
-          text: player.name,
-        },
-        icon: "http://maps.google.com/mapfiles/ms/micons/man.png",
-      });
-    }
-    player_list[player.name].setPosition(player.position);
-  }
+ws.updatePlayerPositions = function(data) {
+  player = data.person
+  player_list[player.id] = new google.maps.Marker({
+    map: map,
+    label: {
+      color: 'black',
+      fontWeight: 'bold',
+      fontSize: '18',
+      text: player.name,
+    },
+    icon: "http://maps.google.com/mapfiles/ms/micons/man.png",
+  });
+    
+  player_list[player.id].setPosition(player.position);
 }
 
-ws.playerDie = function(name) {
-  if (!(name in player_list))
-    debug(name + " is not in player list! " + JSON.stringify(player_list));
-  player_list[name].setMap(null);
-  delete player_list[name];
+ws.playerDie = function(data) {
+  player = data.person
+  if (!(player.id in player_list))
+    debug(player.id + " is not in player list! " + JSON.stringify(player_list));
+  player_list[player.id].setMap(null);
+  delete player_list[player.id];
 }
 
 
@@ -149,7 +148,7 @@ function movePlayer(directionsServiceResponse, status) {
   // polyline.getPath() will return a MVCArray
   var nextPosition = polyline.getPath().getAt(polyline.getPath().length - 1);
   player.setPosition(nextPosition);
-  ws.playerMove(player.name, nextPosition);
+  ws.person.move(nextPosition);
   // remove the polyline after 1000 ms
   setTimeout( () => polyline.setMap(null), 1000);
 }
