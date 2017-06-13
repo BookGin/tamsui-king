@@ -34,27 +34,8 @@ WebsocketClient = function(websocketHostname) {
     this.perform("plantBomb", { player: playerName, position: latLngPosition, nonce: this.randomInt()});
   };
 
-  this.updateBombPositions = function(data) {
-    for (let bombPosition of data.positions) {
-      // TODO
-    }
-  };
-
-  this.bombExplode = function(data) {
-    let bombPosition = data.position;
-    let radius = data.radius;
-    // TODO
-  };
-
-  this.die = function(data) {
-    let playerName = data.player;
-    // TODO
-  };
-
-  this.updatePlayerPositions = function(data) {
-    for (let playerPosition of data.positions) {
-      // TODO
-    }
-  };
-
+  this.updateBombPositions = {};
+  this.bombExplode = {};
+  this.updatePlayerPositions = {};
+  this.playerDie = {};
 };
