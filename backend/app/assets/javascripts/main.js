@@ -1,5 +1,6 @@
 // var ws = new WebsocketClient("ws://localhost:28080/cable");
 var map;
+var myUUID;
 var playerSelfId;
 var player;
 var directionsService;
@@ -125,6 +126,12 @@ die = function(data) {
   delete player_list[person.id];
 }
 
+initPlayerID = function(data) {
+  if(data.nonce == myUUID) {
+    person = JSON.parse(data.person);
+    playerSelfId = person.id;
+  }
+}
 
 function generatePolyline(route) {
   var polyline = new google.maps.Polyline({
@@ -181,6 +188,25 @@ function debug(msg){
   document.getElementById('debug-block').innerHTML += msg + '<br/>';
 }
 
+eachToFloat = function(pos) {
+  floatLat = parseFloat(pos.lat);
+  floatLng = parseFloat(pos.lng);
+  return {lat: floatLat, lng: floatLng};
+}
+
+
+randomUUID = function() {
+  var d = new Date().getTime();
+  if (typeof performance !== 'undefined' && typeof performance.now === 'function'){
+    d += performance.now(); //use high-precision timer if available
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = (d + Math.random() * 16) % 16 | 0;
+    d = Math.floor(d / 16);
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}		 
+
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
     center: startingPosition,
@@ -200,10 +226,7 @@ function initMap() {
     },
     icon: "http://maps.google.com/mapfiles/ms/micons/woman.png",
   });
+  myUUID = randomUUID();
+  App.person.init(myUUID);
 }
 
-eachToFloat = function(pos) {
-  floatLat = parseFloat(pos.lat);
-  floatLng = parseFloat(pos.lng);
-  return {lat: floatLat, lng: floatLng};
-}

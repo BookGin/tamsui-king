@@ -15,5 +15,13 @@ class PersonChannel < ApplicationCable::Channel
     person.save
     # Find broadcast details in app/models/person.rb and app/jobs/person_job.rb
   end
+
+  def init(data)
+    print(data)
+    ActionCable.server.broadcast "person_channel",
+                                 person: current_user.to_json(methods: :position, except: [:lat, :lng]),
+                                 action: "init",
+                                 nonce: data["nonce"]
+  end
   
 end
