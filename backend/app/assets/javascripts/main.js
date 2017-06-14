@@ -22,7 +22,8 @@ function point2LatLng(point) {
 
 document.documentElement.addEventListener('keydown', function(e) {
   if (e.keyCode === 81) { // press Q
-    App.bomb.plant(player.getPosition(), 10, 5); 
+    // bomb.pos, radius (int lat lnt), timer (second)
+    App.bomb.plant(player.getPosition(), 0.002, 5); 
   }
   if (e.keyCode === 65 || e.keyCode === 87 || e.keyCode === 83 || e.keyCode === 68){
     if(e.keyCode === 65){
@@ -85,7 +86,7 @@ bombExplode = function(data) { // bomb explosion
           fillOpacity: 0.35,
           map: map,
           center: bomb_list[bomb.id].getPosition(),
-          radius: rad * 2.7,
+          radius: rad * 10000 * 10,
   });
 
   // remove this explosion circle after 3000ms
