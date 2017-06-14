@@ -160,6 +160,11 @@ function movePlayer(directionsServiceResponse, status) {
     window.alert('Directions request failed due to ' + status);
     return;
   }
+  if (playerSelfId === undefined) {
+    var myUUID = randomUUID();
+    App.person.init(myUUID);
+  }
+
   var route = directionsServiceResponse.routes[0];
   var polyline = generatePolyline(route);
   polyline.setMap(map);
@@ -226,7 +231,5 @@ function initMap() {
     },
     icon: "http://maps.google.com/mapfiles/ms/micons/woman.png",
   });
-  myUUID = randomUUID();
-  App.person.init(myUUID);
 }
 
