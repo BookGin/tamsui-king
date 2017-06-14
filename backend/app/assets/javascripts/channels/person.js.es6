@@ -6,9 +6,14 @@ App.person = App.cable.subscriptions.create("PersonChannel", {
     if (data.action === "died")
       die(data);
     else if (data.action === "positioned")
-      updatePlayerPositions(data);	
+      updatePlayerPositions(data);
+    else if (data.action === "init")
+      initPlayerID(data);
   },
   move: function(latLngPosition) {
     this.perform("send_position", { position: latLngPosition });
-  }  
+  },
+  init: function(nonce) {
+    this.perform("init", { nonce: nonce });
+  },
 }); 
