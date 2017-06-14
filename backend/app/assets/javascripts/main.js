@@ -1,5 +1,6 @@
 // var ws = new WebsocketClient("ws://localhost:28080/cable");
 var map;
+var playerSelfId;
 var player;
 var directionsService;
 var startingPosition = {"lat":25.019422934847636, "lng":121.5412656654205};
@@ -49,17 +50,19 @@ document.documentElement.addEventListener('keydown', function(e) {
 
 updateBombPositions = function(data) { // set bomb on the map
   bomb = JSON.parse(data.bomb);
-  bomb_list[bomb.id] = new google.maps.Marker({
-    map: map,
-    label: {
-      color: 'Red',
-      fontWeight: 'bold',
-      fontSize: '18',
-      text: String(bomb.person_id),
-    },
-    scaledSize: new google.maps.Size(30, 30), // scaled size
-    icon: bomb_url,
-  });
+  if (!(bomb.id in bomb_list)) {
+    bomb_list[bomb.id] = new google.maps.Marker({
+      map: map,
+      label: {
+        color: 'Red',
+        fontWeight: 'bold',
+        fontSize: '18',
+        text: String(bomb.person_id),
+      },
+      scaledSize: new google.maps.Size(30, 30), // scaled size
+      icon: bomb_url,
+    });
+  }
   console.log(bomb)  
   // debug(JSON.stringify(bomb_list));
   debug(bomb.id);
@@ -92,22 +95,30 @@ bombExplode = function(data) { // bomb explosion
 
 updatePlayerPositions = function(data) {
   person = JSON.parse(data.person)
-  player_list[person.id] = new google.maps.Marker({
-    map: map,
-    label: {
-      color: 'black',
-      fontWeight: 'bold',
-      fontSize: '18',
-      text: String(person.id),
-    },
-    icon: "http://maps.google.com/mapfiles/ms/micons/man.png",
-  });
+  if (person.id === playerSelfId)
+    return;
+  if (!(person.id in player_list)) {
+    player_list[person.id] = new google.maps.Marker({
+      map: map,
+      label: {
+        color: 'black',
+        fontWeight: 'bold',
+        fontSize: '18',
+        text: String(person.id),
+      },
+      icon: "http://maps.google.com/mapfiles/ms/micons/man.png",
+    });
+  }
   player_list[person.id].setPosition(eachToFloat(person.position));
 }
 
 die = function(data) {
   person = JSON.parse(data.person)
   console.log("person" + person.id + "die")
+  if (person.id === playerSelfId) {
+    window.alert('You died!');
+    return;
+  }
   if (!(person.id in player_list))
     debug(person.id + " is not in player list! " + JSON.stringify(player_list));
   player_list[person.id].setMap(null);
