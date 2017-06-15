@@ -5,8 +5,16 @@ var playerSelfId;
 var player;
 var directionsService;
 var startingPosition = {"lat":25.019422934847636, "lng":121.5412656654205};
+function showPosition(position) {
+	var newPos = {"lat": position.coords.latitude, "lng": position.coords.longitude}
+  directionsService.route({
+    origin: player.getPosition(),
+    destination: newPos,
+    travelMode: google.maps.TravelMode.WALKING
+  }, movePlayer);
+}
 var playerSpeed = 100; // meter
-var bomb_url = "https://truth.bahamut.com.tw/s01/201006/ecf8480193018fe7494530cb1559d0f3.JPG";
+var bomb_url = "https://i.imgur.com/zBYNNeg.png"
 
 var bomb_list = {};
 var player_list = {};
@@ -137,7 +145,7 @@ initPlayerID = function(data) {
 function generatePolyline(route) {
   var polyline = new google.maps.Polyline({
     path: [player.getPosition()],
-    strokeColor: '#FF0000',
+    strokeColor: '#FFFFFF',
     strokeWeight: 3
   });
   var totalDistance = 0;
@@ -173,6 +181,7 @@ function movePlayer(directionsServiceResponse, status) {
   // polyline.getPath() will return a MVCArray
   var nextPosition = polyline.getPath().getAt(polyline.getPath().length - 1);
   player.setPosition(nextPosition);
+	map.panTo(nextPosition);
   App.person.move(nextPosition);
   // remove the polyline after 1000 ms
   setTimeout( () => polyline.setMap(null), 1000);
@@ -192,7 +201,7 @@ document.documentElement.addEventListener('click', function(mouse) {
 });
 
 function debug(msg){
-  document.getElementById('debug-block').innerHTML += msg + '<br/>';
+  //document.getElementById('debug-block').innerHTML += msg + '<br/>';
 }
 
 eachToFloat = function(pos) {
@@ -217,7 +226,13 @@ randomUUID = function() {
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
     center: startingPosition,
+		//scrollwheel: false,
+    navigationControl: false,
+    mapTypeControl: false,
+    scaleControl: false,
+    draggable: false,
     zoom: 18,
+		mapTypeId: 'hybrid', 
   });
 
   directionsService = new google.maps.DirectionsService;
@@ -226,12 +241,15 @@ function initMap() {
     map: map,
     position: startingPosition,
     label: {
-      color: 'black',
+      color: 'white',
       fontWeight: 'bold',
-      fontSize: '18',
+      fontSize: '22',
       text: 'Player',
     },
     icon: "http://maps.google.com/mapfiles/ms/micons/woman.png",
   });
+	if (navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(function(){});
+		setInterval(function(){navigator.geolocation.getCurrentPosition(showPosition);}, 1200);
+	}
 }
-
